@@ -138,7 +138,40 @@ const Dashboard = () => {
                       <div style={{ fontSize: "0.9rem", fontWeight: "600" }}>{task.title}</div>
                     </td>
                     <td style={{ padding: "10px", textAlign: "right" }}>
-                      <button onClick={() => openEditModal(task)} style={{ fontSize: "0.8rem" }}>Edit</button>
+                      <button 
+                        onClick={() => openEditModal(task)} 
+                        style={{ 
+                          fontSize: "0.8rem", 
+                          padding: "6px 12px", 
+                          marginRight: "8px", 
+                          borderRadius: "6px", 
+                          border: "1px solid #e5e7eb", 
+                          backgroundColor: "#fff", 
+                          cursor: "pointer",
+                          transition: "background-color 0.2s"
+                        }}
+                        onMouseOver={(e) => e.target.style.backgroundColor = "#f3f4f6"}
+                        onMouseOut={(e) => e.target.style.backgroundColor = "#fff"}
+                      >
+                        Edit
+                      </button>
+                      <button 
+                        onClick={() => handleDeleteTask(task.id)} 
+                        style={{ 
+                          fontSize: "0.8rem", 
+                          padding: "6px 12px", 
+                          borderRadius: "6px", 
+                          border: "1px solid #fee2e2", 
+                          backgroundColor: "#fef2f2", 
+                          color: "#dc2626", 
+                          cursor: "pointer",
+                          transition: "background-color 0.2s"
+                        }}
+                        onMouseOver={(e) => e.target.style.backgroundColor = "#fecaca"}
+                        onMouseOut={(e) => e.target.style.backgroundColor = "#fef2f2"}
+                      >
+                        Delete
+                      </button>
                     </td>
                   </tr>
                 ))}
