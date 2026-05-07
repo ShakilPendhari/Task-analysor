@@ -127,6 +127,8 @@ const Dashboard = () => {
                 <tr style={{ textAlign: "left", color: "var(--text-muted)", fontSize: "0.75rem" }}>
                   <th>Status</th>
                   <th>Task</th>
+                  <th>Created At</th>
+                  <th>Deadline</th>
                   <th style={{ textAlign: "right" }}>Actions</th>
                 </tr>
               </thead>
@@ -137,6 +139,8 @@ const Dashboard = () => {
                     <td style={{ padding: "10px" }}>
                       <div style={{ fontSize: "0.9rem", fontWeight: "600" }}>{task.title}</div>
                     </td>
+                    <td style={{ padding: "10px", fontSize: "0.85rem" }}>{new Date(task.created_at).toLocaleDateString()}</td>
+                    <td style={{ padding: "10px", fontSize: "0.85rem" }}>{new Date(task.deadline).toLocaleDateString()}</td>
                     <td style={{ padding: "10px", textAlign: "right" }}>
                       <button 
                         onClick={() => openEditModal(task)} 
