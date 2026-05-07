@@ -19,11 +19,17 @@ const Dashboard = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingTask, setEditingTask] = useState(null);
 
-  const fetchTasks = async () => {
+  // Pagination State
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalTasks, setTotalTasks] = useState(0);
+  const tasksPerPage = 5;
+
+  const fetchTasks = async (page = currentPage) => {
     try {
       setLoading(true);
-      const data = await getTasks();
+      const { data, count } = await getTasks(page, tasksPerPage);
       setTasks(data);
+      setTotalTasks(count);
     } catch (err) {
       setError(err.message);
     } finally {
@@ -32,8 +38,8 @@ const Dashboard = () => {
   };
 
   useEffect(() => {
-    fetchTasks();
-  }, []);
+    fetchTasks(currentPage);
+  }, [currentPage]);
 
   const handleCreateOrUpdate = async (taskData) => {
     console.log("Dashboard: Submitting task data...", taskData);
@@ -181,6 +187,24 @@ const Dashboard = () => {
                 ))}
               </tbody>
             </table>
+          </div>
+          {/* Pagination Controls */}
+          <div style={{ display: "flex", justifyContent: "center", alignItems: "center", gap: "1rem", marginTop: "1rem" }}>
+            <button 
+              disabled={currentPage === 1}
+              onClick={() => setCurrentPage(prev => prev - 1)}
+              style={{ padding: "5px 10px", cursor: "pointer" }}
+            >
+              Previous
+            </button>
+            <span>Page {currentPage} of {Math.max(1, Math.ceil(totalTasks / tasksPerPage))}</span>
+            <button 
+              disabled={currentPage >= Math.ceil(totalTasks / tasksPerPage)}
+              onClick={() => setCurrentPage(prev => prev + 1)}
+              style={{ padding: "5px 10px", cursor: "pointer" }}
+            >
+              Next
+            </button>
           </div>
         </div>
       </div>

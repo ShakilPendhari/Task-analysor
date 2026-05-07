@@ -1,16 +1,20 @@
 import { supabase } from "../config/supabase.js";
 
-export const getTasks = async () => {
-  const { data, error } = await supabase
+export const getTasks = async (page = 1, pageSize = 5) => {
+  const start = (page - 1) * pageSize;
+  const end = start + pageSize - 1;
+
+  const { data, error, count } = await supabase
     .from("tasks")
-    .select("*")
-    .order("created_at", { ascending: false });
+    .select("*", { count: "exact" })
+    .order("created_at", { ascending: false })
+    .range(start, end);
 
   if (error) {
     console.error("Supabase Get Error:", error);
     throw error;
   }
-  return data;
+  return { data, count };
 };
 
 export const createTask = async (task) => {
