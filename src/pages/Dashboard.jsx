@@ -3,6 +3,7 @@ import { useAuth } from "../context/authContext.jsx";
 import { getTasks, createTask, updateTask, deleteTask } from "../service/taskService.js";
 import Stats from "../components/Stats.jsx";
 import TaskModal from "../components/modals/TaskModal.jsx";
+import TaskCard from "../components/TaskCard.jsx";
 
 const Dashboard = () => {
   const { user, logout } = useAuth();
@@ -23,6 +24,9 @@ const Dashboard = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalTasks, setTotalTasks] = useState(0);
   const tasksPerPage = 5;
+
+  // View State
+  const [viewMode, setViewMode] = useState(window.innerWidth < 768 ? "card" : "list"); // list, card
 
   const fetchTasks = async (page = currentPage) => {
     try {
@@ -124,70 +128,93 @@ const Dashboard = () => {
         <div style={{ marginTop: "2rem", backgroundColor: "white", padding: "1.5rem", borderRadius: "12px", border: "1px solid var(--border)" }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1rem" }}>
             <h2 style={{ fontSize: "1.2rem", margin: 0 }}>Tasks</h2>
-            <button onClick={() => { setEditingTask(null); setIsModalOpen(true); }} style={{ padding: "8px 16px" }}>+ New</button>
+            <div style={{ display: "flex", gap: "0.5rem" }}>
+              <button 
+                onClick={() => setViewMode("list")} 
+                style={{ padding: "6px 12px", backgroundColor: viewMode === "list" ? "#e5e7eb" : "white", border: "1px solid #d1d5db" }}
+              >
+                List
+              </button>
+              <button 
+                onClick={() => setViewMode("card")} 
+                style={{ padding: "6px 12px", backgroundColor: viewMode === "card" ? "#e5e7eb" : "white", border: "1px solid #d1d5db" }}
+              >
+                Card
+              </button>
+              <button onClick={() => { setEditingTask(null); setIsModalOpen(true); }} style={{ padding: "8px 16px" }}>+ New</button>
+            </div>
           </div>
 
-          <div style={{ overflowX: "auto" }}>
-            <table style={{ width: "100%", minWidth: "500px", borderCollapse: "separate", borderSpacing: "0 8px" }}>
-              <thead>
-                <tr style={{ textAlign: "left", color: "var(--text-muted)", fontSize: "0.75rem" }}>
-                  <th>Status</th>
-                  <th>Task</th>
-                  <th>Created At</th>
-                  <th>Deadline</th>
-                  <th style={{ textAlign: "right" }}>Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filteredTasks.map((task) => (
-                  <tr key={task.id} style={{ backgroundColor: "#f9fafb", borderRadius: "8px" }}>
-                    <td style={{ padding: "10px" }}><input type="checkbox" checked={task.completed} onChange={() => toggleTaskStatus(task)} /></td>
-                    <td style={{ padding: "10px" }}>
-                      <div style={{ fontSize: "0.9rem", fontWeight: "600" }}>{task.title}</div>
-                    </td>
-                    <td style={{ padding: "10px", fontSize: "0.85rem" }}>{new Date(task.created_at).toLocaleDateString()}</td>
-                    <td style={{ padding: "10px", fontSize: "0.85rem" }}>{new Date(task.deadline).toLocaleDateString()}</td>
-                    <td style={{ padding: "10px", textAlign: "right" }}>
-                      <button 
-                        onClick={() => openEditModal(task)} 
-                        style={{ 
-                          fontSize: "0.8rem", 
-                          padding: "6px 12px", 
-                          marginRight: "8px", 
-                          borderRadius: "6px", 
-                          border: "1px solid #e5e7eb", 
-                          backgroundColor: "#fff", 
-                          cursor: "pointer",
-                          transition: "background-color 0.2s"
-                        }}
-                        onMouseOver={(e) => e.target.style.backgroundColor = "#f3f4f6"}
-                        onMouseOut={(e) => e.target.style.backgroundColor = "#fff"}
-                      >
-                        Edit
-                      </button>
-                      <button 
-                        onClick={() => handleDeleteTask(task.id)} 
-                        style={{ 
-                          fontSize: "0.8rem", 
-                          padding: "6px 12px", 
-                          borderRadius: "6px", 
-                          border: "1px solid #fee2e2", 
-                          backgroundColor: "#fef2f2", 
-                          color: "#dc2626", 
-                          cursor: "pointer",
-                          transition: "background-color 0.2s"
-                        }}
-                        onMouseOver={(e) => e.target.style.backgroundColor = "#fecaca"}
-                        onMouseOut={(e) => e.target.style.backgroundColor = "#fef2f2"}
-                      >
-                        Delete
-                      </button>
-                    </td>
+          {viewMode === "list" ? (
+            <div style={{ overflowX: "auto" }}>
+              <table style={{ width: "100%", minWidth: "500px", borderCollapse: "separate", borderSpacing: "0 8px" }}>
+                <thead>
+                  <tr style={{ textAlign: "left", color: "var(--text-muted)", fontSize: "0.75rem" }}>
+                    <th>Status</th>
+                    <th>Task</th>
+                    <th>Created At</th>
+                    <th>Deadline</th>
+                    <th style={{ textAlign: "right" }}>Actions</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                </thead>
+                <tbody>
+                  {filteredTasks.map((task) => (
+                    <tr key={task.id} style={{ backgroundColor: "#f9fafb", borderRadius: "8px" }}>
+                      <td style={{ padding: "10px" }}><input type="checkbox" checked={task.completed} onChange={() => toggleTaskStatus(task)} /></td>
+                      <td style={{ padding: "10px" }}>
+                        <div style={{ fontSize: "0.9rem", fontWeight: "600" }}>{task.title}</div>
+                      </td>
+                      <td style={{ padding: "10px", fontSize: "0.85rem" }}>{new Date(task.created_at).toLocaleDateString()}</td>
+                      <td style={{ padding: "10px", fontSize: "0.85rem" }}>{new Date(task.deadline).toLocaleDateString()}</td>
+                      <td style={{ padding: "10px", textAlign: "right" }}>
+                        <button 
+                          onClick={() => openEditModal(task)} 
+                          style={{ 
+                            fontSize: "0.8rem", 
+                            padding: "6px 12px", 
+                            marginRight: "8px", 
+                            borderRadius: "6px", 
+                            border: "1px solid #e5e7eb", 
+                            backgroundColor: "#fff", 
+                            cursor: "pointer"
+                          }}
+                        >
+                          Edit
+                        </button>
+                        <button 
+                          onClick={() => handleDeleteTask(task.id)} 
+                          style={{ 
+                            fontSize: "0.8rem", 
+                            padding: "6px 12px", 
+                            borderRadius: "6px", 
+                            border: "1px solid #fee2e2", 
+                            backgroundColor: "#fef2f2", 
+                            color: "#dc2626", 
+                            cursor: "pointer"
+                          }}
+                        >
+                          Delete
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          ) : (
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: "1rem" }}>
+              {filteredTasks.map((task) => (
+                <TaskCard 
+                  key={task.id} 
+                  task={task} 
+                  onUpdate={toggleTaskStatus} 
+                  onDelete={handleDeleteTask} 
+                  onEdit={openEditModal} 
+                />
+              ))}
+            </div>
+          )}
+
           {/* Pagination Controls */}
           <div style={{ display: "flex", justifyContent: "center", alignItems: "center", gap: "1rem", marginTop: "1rem" }}>
             <button 
