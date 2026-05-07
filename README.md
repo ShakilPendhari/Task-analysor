@@ -1,8 +1,21 @@
-# React + Vite
+# Task Tracker App
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+## Objective
+This project is a high-performance task tracking application designed to help users efficiently manage, prioritize, and log their daily tasks. It is built to be fast, reliable, and accessible offline, ensuring productivity is maintained even in unstable network conditions.
 
-Currently, two official plugins are available:
+## Tech Stack
+- **Frontend:** React 19, Vite, Vanilla CSS
+- **Backend/Database:** Supabase (PostgreSQL)
+- **Networking:** Axios
+- **PWA Capabilities:** vite-plugin-pwa (offline support, installability)
+
+## Progressive Web App (PWA)
+This project is configured as a PWA using `vite-plugin-pwa`. It supports offline access and installation.
+
+- **To build the PWA:** Run `npm run build`.
+- **To preview:** Run `npm run preview`.
+
+Check your browser's "Application" tab in DevTools to see the Service Worker and Manifest status.
 
 - [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
 - [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
