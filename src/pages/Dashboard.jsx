@@ -13,8 +13,18 @@ const Dashboard = () => {
 
   // Search, Filter, Sort State
   const [searchQuery, setSearchQuery] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
   const [activeTab, setActiveTab] = useState("all"); // all, pending, completed
   const [sortOrder, setSortOrder] = useState("newest"); // newest, oldest, deadline
+
+  // Debounce effect
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedSearch(searchQuery);
+    }, 500);
+
+    return () => clearTimeout(handler);
+  }, [searchQuery]);
 
   // Modal State
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -31,7 +41,9 @@ const Dashboard = () => {
   const fetchTasks = async (page = currentPage) => {
     try {
       setLoading(true);
-      const { data, count } = await getTasks(page, tasksPerPage);
+      const sortBy = sortOrder === "deadline" ? "deadline" : "created_at";
+      const order = sortOrder === "oldest" ? "asc" : "desc";
+      const { data, count } = await getTasks(page, tasksPerPage, debouncedSearch, sortBy, order, activeTab);
       setTasks(data);
       setTotalTasks(count);
     } catch (err) {
@@ -43,27 +55,24 @@ const Dashboard = () => {
 
   useEffect(() => {
     fetchTasks(currentPage);
-  }, [currentPage]);
+  }, [currentPage, debouncedSearch, sortOrder, activeTab]);
 
   const handleCreateOrUpdate = async (taskData) => {
-    console.log("Dashboard: Submitting task data...", taskData);
     try {
       if (editingTask) {
         await updateTask(editingTask.id, taskData);
       } else {
-        console.log("Dashboard: Creating task with user ID", user.id);
         await createTask({ ...taskData, user_id: user.id, completed: false });
       }
       fetchTasks();
       setEditingTask(null);
     } catch (err) {
-      console.error("Dashboard: Error caught in handleCreateOrUpdate", err);
       alert("Error saving task: " + err.message);
     }
   };
 
   const handleDeleteTask = async (id) => {
-    if (window.confirm("Are you sure you want to delete this task? This action cannot be undone.")) {
+    if (window.confirm("Are you sure you want to delete this task?")) {
       try {
         await deleteTask(id);
         fetchTasks();
@@ -87,59 +96,58 @@ const Dashboard = () => {
     setIsModalOpen(true);
   };
 
-  // Filtering Logic
-  const filteredTasks = tasks
-    .filter((task) => {
-      const matchesSearch = 
-        task.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        (task.description && task.description.toLowerCase().includes(searchQuery.toLowerCase()));
-      
-      const matchesTab = 
-        activeTab === "all" || 
-        (activeTab === "pending" && !task.completed) || 
-        (activeTab === "completed" && task.completed);
-
-      return matchesSearch && matchesTab;
-    })
-    .sort((a, b) => {
-      if (sortOrder === "newest") return new Date(b.created_at) - new Date(a.created_at);
-      if (sortOrder === "oldest") return new Date(a.created_at) - new Date(b.created_at);
-      if (sortOrder === "deadline") return new Date(a.deadline) - new Date(b.deadline);
-      return 0;
-    });
-
   return (
     <div style={{ minHeight: "100vh", backgroundColor: "var(--bg)", fontFamily: "Inter, sans-serif" }}>
-      {/* Navbar Container */}
       <nav style={{ backgroundColor: "white", borderBottom: "1px solid var(--border)" }}>
         <div style={{ maxWidth: "1200px", margin: "0 auto", padding: "1rem 20px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
           <h1 style={{ margin: 0, fontSize: "1.25rem", color: "var(--primary)" }}>Task Analyser</h1>
-          <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
-            <span style={{ fontSize: "0.8rem" }}>{user.email}</span>
-            <button onClick={logout} style={{ fontSize: "0.8rem", padding: "0.4rem 0.8rem" }}>Logout</button>
-          </div>
+          <button onClick={logout} style={{ fontSize: "0.8rem", padding: "0.4rem 0.8rem" }}>Logout</button>
         </div>
       </nav>
 
-      {/* Main Content Container */}
       <div style={{ maxWidth: "1200px", margin: "2rem auto", padding: "0 20px" }}>
         <Stats tasks={tasks} />
 
         <div style={{ marginTop: "2rem", backgroundColor: "white", padding: "1.5rem", borderRadius: "12px", border: "1px solid var(--border)" }}>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1rem" }}>
-            <h2 style={{ fontSize: "1.2rem", margin: 0 }}>Tasks</h2>
+          <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "space-between", alignItems: "center", marginBottom: "1rem", gap: "1rem" }}>
             <div style={{ display: "flex", gap: "0.5rem" }}>
-              <button 
-                onClick={() => setViewMode("list")} 
-                style={{ padding: "6px 12px", backgroundColor: viewMode === "list" ? "#e5e7eb" : "white", border: "1px solid #d1d5db" }}
+              {["all", "pending", "completed"].map((tab) => (
+                <button
+                  key={tab}
+                  onClick={() => { setActiveTab(tab); setCurrentPage(1); }}
+                  style={{
+                    padding: "6px 12px",
+                    borderRadius: "6px",
+                    border: activeTab === tab ? "none" : "1px solid #d1d5db",
+                    backgroundColor: activeTab === tab ? "var(--primary)" : "white",
+                    color: activeTab === tab ? "white" : "black",
+                    textTransform: "capitalize"
+                  }}
+                >
+                  {tab}
+                </button>
+              ))}
+            </div>
+
+            <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap" }}>
+              <input 
+                type="text" 
+                placeholder="Search..." 
+                value={searchQuery}
+                onChange={(e) => { setSearchQuery(e.target.value); setCurrentPage(1); }}
+                style={{ padding: "6px 12px", borderRadius: "6px", border: "1px solid #d1d5db" }}
+              />
+              <select 
+                value={sortOrder}
+                onChange={(e) => setSortOrder(e.target.value)}
+                style={{ padding: "6px 12px", borderRadius: "6px", border: "1px solid #d1d5db" }}
               >
-                List
-              </button>
-              <button 
-                onClick={() => setViewMode("card")} 
-                style={{ padding: "6px 12px", backgroundColor: viewMode === "card" ? "#e5e7eb" : "white", border: "1px solid #d1d5db" }}
-              >
-                Card
+                <option value="newest">Newest</option>
+                <option value="oldest">Oldest</option>
+                <option value="deadline">Deadline</option>
+              </select>
+              <button onClick={() => setViewMode(viewMode === "list" ? "card" : "list")} style={{ padding: "6px 12px" }}>
+                {viewMode === "list" ? "Card View" : "List View"}
               </button>
               <button onClick={() => { setEditingTask(null); setIsModalOpen(true); }} style={{ padding: "8px 16px" }}>+ New</button>
             </div>
@@ -147,54 +155,22 @@ const Dashboard = () => {
 
           {viewMode === "list" ? (
             <div style={{ overflowX: "auto" }}>
-              <table style={{ width: "100%", minWidth: "500px", borderCollapse: "separate", borderSpacing: "0 8px" }}>
+              <table style={{ width: "100%", borderCollapse: "separate", borderSpacing: "0 8px" }}>
                 <thead>
                   <tr style={{ textAlign: "left", color: "var(--text-muted)", fontSize: "0.75rem" }}>
-                    <th>Status</th>
-                    <th>Task</th>
-                    <th>Created At</th>
-                    <th>Deadline</th>
-                    <th style={{ textAlign: "right" }}>Actions</th>
+                    <th>Status</th><th>Task</th><th>Created At</th><th>Deadline</th><th style={{ textAlign: "right" }}>Actions</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {filteredTasks.map((task) => (
+                  {tasks.map((task) => (
                     <tr key={task.id} style={{ backgroundColor: "#f9fafb", borderRadius: "8px" }}>
-                      <td style={{ padding: "10px" }}><input type="checkbox" checked={task.completed} onChange={() => toggleTaskStatus(task)} /></td>
-                      <td style={{ padding: "10px" }}>
-                        <div style={{ fontSize: "0.9rem", fontWeight: "600" }}>{task.title}</div>
-                      </td>
-                      <td style={{ padding: "10px", fontSize: "0.85rem" }}>{new Date(task.created_at).toLocaleDateString()}</td>
-                      <td style={{ padding: "10px", fontSize: "0.85rem" }}>{new Date(task.deadline).toLocaleDateString()}</td>
-                      <td style={{ padding: "10px", textAlign: "right" }}>
-                        <button 
-                          onClick={() => openEditModal(task)} 
-                          style={{ 
-                            fontSize: "0.8rem", 
-                            padding: "6px 12px", 
-                            marginRight: "8px", 
-                            borderRadius: "6px", 
-                            border: "1px solid #e5e7eb", 
-                            backgroundColor: "#fff", 
-                            cursor: "pointer"
-                          }}
-                        >
-                          Edit
-                        </button>
-                        <button 
-                          onClick={() => handleDeleteTask(task.id)} 
-                          style={{ 
-                            fontSize: "0.8rem", 
-                            padding: "6px 12px", 
-                            borderRadius: "6px", 
-                            border: "1px solid #fee2e2", 
-                            backgroundColor: "#fef2f2", 
-                            color: "#dc2626", 
-                            cursor: "pointer"
-                          }}
-                        >
-                          Delete
-                        </button>
+                      <td><input type="checkbox" checked={task.completed} onChange={() => toggleTaskStatus(task)} /></td>
+                      <td>{task.title}</td>
+                      <td>{new Date(task.created_at).toLocaleDateString()}</td>
+                      <td>{new Date(task.deadline).toLocaleDateString()}</td>
+                      <td style={{ textAlign: "right" }}>
+                        <button onClick={() => openEditModal(task)}>Edit</button>
+                        <button onClick={() => handleDeleteTask(task.id)}>Delete</button>
                       </td>
                     </tr>
                   ))}
@@ -203,44 +179,20 @@ const Dashboard = () => {
             </div>
           ) : (
             <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: "1rem" }}>
-              {filteredTasks.map((task) => (
-                <TaskCard 
-                  key={task.id} 
-                  task={task} 
-                  onUpdate={toggleTaskStatus} 
-                  onDelete={handleDeleteTask} 
-                  onEdit={openEditModal} 
-                />
+              {tasks.map((task) => (
+                <TaskCard key={task.id} task={task} onUpdate={toggleTaskStatus} onDelete={handleDeleteTask} onEdit={openEditModal} />
               ))}
             </div>
           )}
 
-          {/* Pagination Controls */}
-          <div style={{ display: "flex", justifyContent: "center", alignItems: "center", gap: "1rem", marginTop: "1rem" }}>
-            <button 
-              disabled={currentPage === 1}
-              onClick={() => setCurrentPage(prev => prev - 1)}
-              style={{ padding: "5px 10px", cursor: "pointer" }}
-            >
-              Previous
-            </button>
-            <span>Page {currentPage} of {Math.max(1, Math.ceil(totalTasks / tasksPerPage))}</span>
-            <button 
-              disabled={currentPage >= Math.ceil(totalTasks / tasksPerPage)}
-              onClick={() => setCurrentPage(prev => prev + 1)}
-              style={{ padding: "5px 10px", cursor: "pointer" }}
-            >
-              Next
-            </button>
+          <div style={{ display: "flex", justifyContent: "center", gap: "1rem", marginTop: "1rem" }}>
+            <button disabled={currentPage === 1} onClick={() => setCurrentPage(p => p - 1)}>Prev</button>
+            <span>Page {currentPage}</span>
+            <button disabled={currentPage >= Math.ceil(totalTasks / tasksPerPage)} onClick={() => setCurrentPage(p => p + 1)}>Next</button>
           </div>
         </div>
       </div>
-      <TaskModal 
-        isOpen={isModalOpen} 
-        onClose={() => { setIsModalOpen(false); setEditingTask(null); }}
-        onSubmit={handleCreateOrUpdate}
-        task={editingTask}
-      />
+      <TaskModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} onSubmit={handleCreateOrUpdate} task={editingTask} />
     </div>
   );
 };

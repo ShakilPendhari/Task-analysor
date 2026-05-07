@@ -1,13 +1,23 @@
 import { supabase } from "../config/supabase.js";
 
-export const getTasks = async (page = 1, pageSize = 5) => {
+export const getTasks = async (page = 1, pageSize = 5, searchQuery = "", sortBy = "created_at", order = "desc", status = "all") => {
   const start = (page - 1) * pageSize;
   const end = start + pageSize - 1;
 
-  const { data, error, count } = await supabase
+  let query = supabase
     .from("tasks")
-    .select("*", { count: "exact" })
-    .order("created_at", { ascending: false })
+    .select("*", { count: "exact" });
+
+  if (searchQuery) {
+    query = query.ilike("title", `%${searchQuery}%`);
+  }
+
+  if (status !== "all") {
+    query = query.eq("completed", status === "completed");
+  }
+
+  const { data, error, count } = await query
+    .order(sortBy, { ascending: order === "asc" })
     .range(start, end);
 
   if (error) {
