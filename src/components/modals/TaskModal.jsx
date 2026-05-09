@@ -4,24 +4,27 @@ const TaskModal = ({ isOpen, onClose, onSubmit, task = null }) => {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [deadline, setDeadline] = useState("");
-  const [priority, setPriority] = useState("medium");
+  const [priority, setPriority] = useState("Medium");
 
   useEffect(() => {
     if (task) {
       setTitle(task.title || "");
       setDescription(task.description || "");
-      setPriority(task.priority || "medium");
-      // Format deadline for datetime-local input
+      setPriority(task.priority || "Medium");
+      setDeadline("");
+
       if (task.deadline) {
-        const d = new Date(task.deadline);
-        const formattedDate = d.toISOString().slice(0, 16);
-        setDeadline(formattedDate);
+        const date = new Date(task.deadline);
+        if (!Number.isNaN(date.getTime())) {
+          const offsetDate = new Date(date.getTime() - date.getTimezoneOffset() * 60000);
+          setDeadline(offsetDate.toISOString().slice(0, 16));
+        }
       }
     } else {
       setTitle("");
       setDescription("");
       setDeadline("");
-      setPriority("medium");
+      setPriority("Medium");
     }
   }, [task, isOpen]);
 
@@ -37,7 +40,7 @@ const TaskModal = ({ isOpen, onClose, onSubmit, task = null }) => {
       alert("Please set a deadline");
       return;
     }
-    onSubmit({ title, description, deadline, priority });
+    onSubmit({ title: title.trim(), description, deadline, priority });
     onClose();
   };
 
@@ -45,18 +48,18 @@ const TaskModal = ({ isOpen, onClose, onSubmit, task = null }) => {
     <div className="modal-overlay">
       <div className="modal-content">
         <div className="modal-header">
-          <h2>{task ? "✏️ Update Task" : "➕ Create New Task"}</h2>
+          <h2>{task ? "Update Task" : "Create New Task"}</h2>
         </div>
-        
+
         <form onSubmit={handleSubmit} className="modal-form">
           <div className="form-group">
             <label htmlFor="title">Task Title *</label>
-            <input 
+            <input
               id="title"
-              type="text" 
-              value={title} 
-              onChange={(e) => setTitle(e.target.value)} 
-              required 
+              type="text"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              required
               placeholder="What needs to be done?"
               autoFocus
             />
@@ -64,53 +67,53 @@ const TaskModal = ({ isOpen, onClose, onSubmit, task = null }) => {
 
           <div className="form-group">
             <label htmlFor="description">Description</label>
-            <textarea 
+            <textarea
               id="description"
-              value={description} 
-              onChange={(e) => setDescription(e.target.value)} 
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
               placeholder="Add details about this task..."
             />
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+          <div className="modal-field-grid">
             <div className="form-group">
               <label htmlFor="priority">Priority</label>
-              <select 
+              <select
                 id="priority"
-                value={priority} 
+                value={priority}
                 onChange={(e) => setPriority(e.target.value)}
               >
-                <option value="low">🟢 Low</option>
-                <option value="medium">🟡 Medium</option>
-                <option value="high">🔴 High</option>
+                <option value="Low">Low</option>
+                <option value="Medium">Medium</option>
+                <option value="High">High</option>
               </select>
             </div>
 
             <div className="form-group">
               <label htmlFor="deadline">Deadline *</label>
-              <input 
+              <input
                 id="deadline"
-                type="datetime-local" 
-                value={deadline} 
-                onChange={(e) => setDeadline(e.target.value)} 
-                required 
+                type="datetime-local"
+                value={deadline}
+                onChange={(e) => setDeadline(e.target.value)}
+                required
               />
             </div>
           </div>
 
           <div className="modal-actions">
-            <button 
-              type="button" 
+            <button
+              type="button"
               className="btn-secondary"
               onClick={onClose}
             >
-              ✕ Cancel
+              Cancel
             </button>
-            <button 
+            <button
               type="submit"
               className="btn-primary"
             >
-              {task ? "💾 Update Task" : "✅ Create Task"}
+              {task ? "Update Task" : "Create Task"}
             </button>
           </div>
         </form>

@@ -1,5 +1,22 @@
 import { supabase } from "../config/supabase.js";
 
+const normalizePriority = (priority) => {
+  const value = String(priority || "Medium").toLowerCase();
+  if (value === "high") return "High";
+  if (value === "low") return "Low";
+  return "Medium";
+};
+
+const normalizeTaskPayload = (task, includeDefaultPriority = false) => {
+  const payload = { ...task };
+
+  if (includeDefaultPriority || Object.prototype.hasOwnProperty.call(payload, "priority")) {
+    payload.priority = normalizePriority(payload.priority);
+  }
+
+  return payload;
+};
+
 export const getTasks = async (page = 1, pageSize = 5, searchQuery = "", sortBy = "created_at", order = "desc", status = "all") => {
   const start = (page - 1) * pageSize;
   const end = start + pageSize - 1;
@@ -28,10 +45,9 @@ export const getTasks = async (page = 1, pageSize = 5, searchQuery = "", sortBy 
 };
 
 export const createTask = async (task) => {
-  console.log("Creating Task Data:", task);
   const { data, error } = await supabase
     .from("tasks")
-    .insert([task])
+    .insert([normalizeTaskPayload(task, true)])
     .select();
 
   if (error) {
@@ -44,7 +60,7 @@ export const createTask = async (task) => {
 export const updateTask = async (id, updates) => {
   const { data, error } = await supabase
     .from("tasks")
-    .update(updates)
+    .update(normalizeTaskPayload(updates))
     .eq("id", id)
     .select();
 
