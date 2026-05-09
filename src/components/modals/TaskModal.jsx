@@ -4,11 +4,13 @@ const TaskModal = ({ isOpen, onClose, onSubmit, task = null }) => {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [deadline, setDeadline] = useState("");
+  const [priority, setPriority] = useState("medium");
 
   useEffect(() => {
     if (task) {
       setTitle(task.title || "");
       setDescription(task.description || "");
+      setPriority(task.priority || "medium");
       // Format deadline for datetime-local input
       if (task.deadline) {
         const d = new Date(task.deadline);
@@ -19,6 +21,7 @@ const TaskModal = ({ isOpen, onClose, onSubmit, task = null }) => {
       setTitle("");
       setDescription("");
       setDeadline("");
+      setPriority("medium");
     }
   }, [task, isOpen]);
 
@@ -26,76 +29,88 @@ const TaskModal = ({ isOpen, onClose, onSubmit, task = null }) => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    onSubmit({ title, description, deadline });
+    if (!title.trim()) {
+      alert("Please enter a task title");
+      return;
+    }
+    if (!deadline) {
+      alert("Please set a deadline");
+      return;
+    }
+    onSubmit({ title, description, deadline, priority });
     onClose();
   };
 
   return (
-    <div style={{
-      position: "fixed",
-      top: 0,
-      left: 0,
-      right: 0,
-      bottom: 0,
-      backgroundColor: "rgba(0,0,0,0.5)",
-      display: "flex",
-      justifyContent: "center",
-      alignItems: "center",
-      zIndex: 1000
-    }}>
-      <div style={{
-        backgroundColor: "white",
-        padding: "30px",
-        borderRadius: "12px",
-        width: "90%",
-        maxWidth: "500px",
-        boxShadow: "0 4px 20px rgba(0,0,0,0.2)"
-      }}>
-        <h2 style={{ marginTop: 0 }}>{task ? "Update Task" : "Create New Task"}</h2>
-        <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: "15px" }}>
-          <div style={{ display: "flex", flexDirection: "column", gap: "5px" }}>
-            <label style={{ fontWeight: "bold" }}>Title</label>
+    <div className="modal-overlay">
+      <div className="modal-content">
+        <div className="modal-header">
+          <h2>{task ? "✏️ Update Task" : "➕ Create New Task"}</h2>
+        </div>
+        
+        <form onSubmit={handleSubmit} className="modal-form">
+          <div className="form-group">
+            <label htmlFor="title">Task Title *</label>
             <input 
+              id="title"
               type="text" 
               value={title} 
               onChange={(e) => setTitle(e.target.value)} 
               required 
-              placeholder="Enter task title"
-              style={{ padding: "10px", borderRadius: "4px", border: "1px solid #ccc" }}
+              placeholder="What needs to be done?"
+              autoFocus
             />
           </div>
-          <div style={{ display: "flex", flexDirection: "column", gap: "5px" }}>
-            <label style={{ fontWeight: "bold" }}>Description</label>
+
+          <div className="form-group">
+            <label htmlFor="description">Description</label>
             <textarea 
+              id="description"
               value={description} 
               onChange={(e) => setDescription(e.target.value)} 
-              placeholder="Enter task description"
-              style={{ padding: "10px", borderRadius: "4px", border: "1px solid #ccc", minHeight: "80px" }}
+              placeholder="Add details about this task..."
             />
           </div>
-          <div style={{ display: "flex", flexDirection: "column", gap: "5px" }}>
-            <label style={{ fontWeight: "bold" }}>Deadline</label>
-            <input 
-              type="datetime-local" 
-              value={deadline} 
-              onChange={(e) => setDeadline(e.target.value)} 
-              required 
-              style={{ padding: "10px", borderRadius: "4px", border: "1px solid #ccc" }}
-            />
+
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+            <div className="form-group">
+              <label htmlFor="priority">Priority</label>
+              <select 
+                id="priority"
+                value={priority} 
+                onChange={(e) => setPriority(e.target.value)}
+              >
+                <option value="low">🟢 Low</option>
+                <option value="medium">🟡 Medium</option>
+                <option value="high">🔴 High</option>
+              </select>
+            </div>
+
+            <div className="form-group">
+              <label htmlFor="deadline">Deadline *</label>
+              <input 
+                id="deadline"
+                type="datetime-local" 
+                value={deadline} 
+                onChange={(e) => setDeadline(e.target.value)} 
+                required 
+              />
+            </div>
           </div>
-          <div style={{ display: "flex", justifyContent: "flex-end", gap: "10px", marginTop: "10px" }}>
+
+          <div className="modal-actions">
             <button 
               type="button" 
+              className="btn-secondary"
               onClick={onClose}
-              style={{ padding: "10px 20px", border: "1px solid #ccc", borderRadius: "4px", background: "white", cursor: "pointer" }}
             >
-              Cancel
+              ✕ Cancel
             </button>
             <button 
               type="submit"
-              style={{ padding: "10px 20px", borderRadius: "4px", background: "#007bff", color: "white", border: "none", cursor: "pointer" }}
+              className="btn-primary"
             >
-              {task ? "Update" : "Create"}
+              {task ? "💾 Update Task" : "✅ Create Task"}
             </button>
           </div>
         </form>

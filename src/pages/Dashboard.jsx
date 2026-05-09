@@ -97,80 +97,150 @@ const Dashboard = () => {
   };
 
   return (
-    <div style={{ minHeight: "100vh", backgroundColor: "var(--bg)", fontFamily: "Inter, sans-serif" }}>
-      <nav style={{ backgroundColor: "white", borderBottom: "1px solid var(--border)" }}>
-        <div style={{ maxWidth: "1200px", margin: "0 auto", padding: "1rem 20px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-          <h1 style={{ margin: 0, fontSize: "1.25rem", color: "var(--primary)" }}>Task Analyser</h1>
-          <button onClick={logout} style={{ fontSize: "0.8rem", padding: "0.4rem 0.8rem" }}>Logout</button>
+    <div className="dashboard-container">
+      <header className="dashboard-header">
+        <h1>📊 Task Tracker</h1>
+        <div className="dashboard-controls">
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', paddingRight: '12px', borderRight: '1px solid var(--border)' }}>
+            <span style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }} title="Logged in as">
+              👤 {user?.email || 'User'}
+            </span>
+          </div>
+          <button 
+            className="btn-logout" 
+            onClick={logout}
+            title="Sign out from your account"
+          >
+            🚪 Logout
+          </button>
         </div>
-      </nav>
+      </header>
 
-      <div style={{ maxWidth: "1200px", margin: "2rem auto", padding: "0 20px" }}>
+      <div className="dashboard-content">
         <Stats tasks={tasks} />
 
-        <div style={{ marginTop: "2rem", backgroundColor: "white", padding: "1.5rem", borderRadius: "12px", border: "1px solid var(--border)" }}>
-          <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "space-between", alignItems: "center", marginBottom: "1rem", gap: "1rem" }}>
-            <div style={{ display: "flex", gap: "0.5rem" }}>
-              {["all", "pending", "completed"].map((tab) => (
-                <button
-                  key={tab}
-                  onClick={() => { setActiveTab(tab); setCurrentPage(1); }}
-                  style={{
-                    padding: "6px 12px",
-                    borderRadius: "6px",
-                    border: activeTab === tab ? "none" : "1px solid #d1d5db",
-                    backgroundColor: activeTab === tab ? "var(--primary)" : "white",
-                    color: activeTab === tab ? "white" : "black",
-                    textTransform: "capitalize"
-                  }}
-                >
-                  {tab}
-                </button>
-              ))}
-            </div>
-
-            <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap" }}>
-              <input 
-                type="text" 
-                placeholder="Search..." 
-                value={searchQuery}
-                onChange={(e) => { setSearchQuery(e.target.value); setCurrentPage(1); }}
-                style={{ padding: "6px 12px", borderRadius: "6px", border: "1px solid #d1d5db" }}
-              />
-              <select 
-                value={sortOrder}
-                onChange={(e) => setSortOrder(e.target.value)}
-                style={{ padding: "6px 12px", borderRadius: "6px", border: "1px solid #d1d5db" }}
-              >
-                <option value="newest">Newest</option>
-                <option value="oldest">Oldest</option>
-                <option value="deadline">Deadline</option>
-              </select>
-              <button onClick={() => setViewMode(viewMode === "list" ? "card" : "list")} style={{ padding: "6px 12px" }}>
-                {viewMode === "list" ? "Card View" : "List View"}
-              </button>
-              <button onClick={() => { setEditingTask(null); setIsModalOpen(true); }} style={{ padding: "8px 16px" }}>+ New</button>
-            </div>
+        <div style={{ backgroundColor: 'white', borderRadius: 'var(--radius-lg)', border: '1px solid var(--border)', overflow: 'hidden' }}>
+          {/* Search & Filter Bar */}
+          <div className="search-filter-bar">
+            <input 
+              type="text" 
+              placeholder="🔍 Search tasks..." 
+              value={searchQuery}
+              onChange={(e) => { setSearchQuery(e.target.value); setCurrentPage(1); }}
+              style={{ flex: 1, minWidth: '150px' }}
+            />
+            <select 
+              value={sortOrder}
+              onChange={(e) => setSortOrder(e.target.value)}
+              style={{ minWidth: '120px' }}
+            >
+              <option value="newest">📅 Newest First</option>
+              <option value="oldest">📅 Oldest First</option>
+              <option value="deadline">⏰ By Deadline</option>
+            </select>
+            <button 
+              className="btn-secondary"
+              onClick={() => setViewMode(viewMode === "list" ? "card" : "list")}
+              style={{ padding: '10px 14px', fontSize: '0.9rem', minWidth: '100px' }}
+              title={`Switch to ${viewMode === 'list' ? 'card' : 'list'} view`}
+            >
+              {viewMode === "list" ? "🎴 Card" : "📋 List"}
+            </button>
+            <button 
+              className="btn-primary"
+              onClick={() => { setEditingTask(null); setIsModalOpen(true); }}
+              style={{ padding: '10px 16px' }}
+            >
+              ➕ New
+            </button>
           </div>
 
-          {viewMode === "list" ? (
-            <div style={{ overflowX: "auto" }}>
-              <table style={{ width: "100%", borderCollapse: "separate", borderSpacing: "0 8px" }}>
-                <thead>
-                  <tr style={{ textAlign: "left", color: "var(--text-muted)", fontSize: "0.75rem" }}>
-                    <th>Status</th><th>Task</th><th>Created At</th><th>Deadline</th><th style={{ textAlign: "right" }}>Actions</th>
+          {/* Tab Navigation */}
+          <div className="tab-container">
+            {['all', 'pending', 'completed'].map((tab) => (
+              <button
+                key={tab}
+                className={`tab-button ${activeTab === tab ? 'active' : ''}`}
+                onClick={() => { setActiveTab(tab); setCurrentPage(1); }}
+              >
+                {tab === 'all' && '📋 All Tasks'}
+                {tab === 'pending' && '⏳ Pending'}
+                {tab === 'completed' && '✅ Completed'}
+              </button>
+            ))}
+          </div>
+
+          {/* Tasks List */}
+          {loading ? (
+            <div className="loading">
+              <div className="spinner"></div>
+              <p style={{ marginLeft: '12px' }}>Loading tasks...</p>
+            </div>
+          ) : tasks.length === 0 ? (
+            <div className="empty-state">
+              <h3>No tasks found</h3>
+              <p>Create a new task to get started!</p>
+            </div>
+          ) : viewMode === "list" ? (
+            <div style={{ overflowX: 'auto' }}>
+              <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                <thead style={{ backgroundColor: 'var(--bg-alt)', borderBottom: '2px solid var(--border)' }}>
+                  <tr style={{ textAlign: 'left', color: 'var(--text-muted)', fontSize: '0.85rem', fontWeight: 600 }}>
+                    <th style={{ padding: '12px 16px' }}>Status</th>
+                    <th style={{ padding: '12px 16px' }}>Task</th>
+                    <th style={{ padding: '12px 16px', display: 'none' }} className="hide-on-mobile">Created</th>
+                    <th style={{ padding: '12px 16px' }}>Deadline</th>
+                    <th style={{ padding: '12px 16px', textAlign: 'right' }}>Actions</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {tasks.map((task) => (
-                    <tr key={task.id} style={{ backgroundColor: "#f9fafb", borderRadius: "8px" }}>
-                      <td><input type="checkbox" checked={task.completed} onChange={() => toggleTaskStatus(task)} /></td>
-                      <td>{task.title}</td>
-                      <td>{new Date(task.created_at).toLocaleDateString()}</td>
-                      <td>{new Date(task.deadline).toLocaleDateString()}</td>
-                      <td style={{ textAlign: "right" }}>
-                        <button onClick={() => openEditModal(task)}>Edit</button>
-                        <button onClick={() => handleDeleteTask(task.id)}>Delete</button>
+                  {tasks.map((task, idx) => (
+                    <tr 
+                      key={task.id} 
+                      style={{ 
+                        borderBottom: '1px solid var(--border)',
+                        backgroundColor: idx % 2 === 0 ? 'white' : 'var(--bg-alt)',
+                        transition: 'all var(--transition-base)'
+                      }}
+                      className="table-row-hover"
+                    >
+                      <td style={{ padding: '12px 16px' }}>
+                        <input 
+                          type="checkbox" 
+                          checked={task.completed} 
+                          onChange={() => toggleTaskStatus(task)}
+                          style={{ width: '18px', height: '18px', cursor: 'pointer', accentColor: 'var(--secondary)' }}
+                          title="Mark as complete"
+                        />
+                      </td>
+                      <td style={{ padding: '12px 16px' }}>
+                        <span style={{ textDecoration: task.completed ? 'line-through' : 'none', color: task.completed ? 'var(--text-light)' : 'var(--text-main)' }}>
+                          {task.title}
+                        </span>
+                      </td>
+                      <td style={{ padding: '12px 16px', display: 'none' }} className="hide-on-mobile">
+                        {new Date(task.created_at).toLocaleDateString()}
+                      </td>
+                      <td style={{ padding: '12px 16px' }}>
+                        {new Date(task.deadline).toLocaleDateString()}
+                      </td>
+                      <td style={{ padding: '12px 16px', textAlign: 'right' }}>
+                        <button 
+                          className="btn-edit"
+                          onClick={() => openEditModal(task)}
+                          style={{ padding: '6px 10px', fontSize: '0.8rem', marginRight: '6px' }}
+                          title="Edit task"
+                        >
+                          ✏️
+                        </button>
+                        <button 
+                          className="btn-delete"
+                          onClick={() => handleDeleteTask(task.id)}
+                          style={{ padding: '6px 10px', fontSize: '0.8rem' }}
+                          title="Delete task"
+                        >
+                          🗑️
+                        </button>
                       </td>
                     </tr>
                   ))}
@@ -178,21 +248,74 @@ const Dashboard = () => {
               </table>
             </div>
           ) : (
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: "1rem" }}>
+            <div style={{ padding: '16px', display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '16px' }} className="tasks-grid">
               {tasks.map((task) => (
-                <TaskCard key={task.id} task={task} onUpdate={toggleTaskStatus} onDelete={handleDeleteTask} onEdit={openEditModal} />
+                <TaskCard 
+                  key={task.id} 
+                  task={task} 
+                  onUpdate={toggleTaskStatus} 
+                  onDelete={handleDeleteTask} 
+                  onEdit={openEditModal} 
+                />
               ))}
             </div>
           )}
 
-          <div style={{ display: "flex", justifyContent: "center", gap: "1rem", marginTop: "1rem" }}>
-            <button disabled={currentPage === 1} onClick={() => setCurrentPage(p => p - 1)}>Prev</button>
-            <span>Page {currentPage}</span>
-            <button disabled={currentPage >= Math.ceil(totalTasks / tasksPerPage)} onClick={() => setCurrentPage(p => p + 1)}>Next</button>
-          </div>
+          {/* Pagination */}
+          {tasks.length > 0 && (
+            <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '12px', padding: '20px', borderTop: '1px solid var(--border)' }}>
+              <button 
+                className="btn-secondary"
+                disabled={currentPage === 1} 
+                onClick={() => setCurrentPage(p => p - 1)}
+                style={{ opacity: currentPage === 1 ? 0.5 : 1 }}
+              >
+                ← Previous
+              </button>
+              <span style={{ color: 'var(--text-muted)', fontWeight: 500 }}>
+                Page {currentPage} of {Math.ceil(totalTasks / tasksPerPage)}
+              </span>
+              <button 
+                className="btn-secondary"
+                disabled={currentPage >= Math.ceil(totalTasks / tasksPerPage)} 
+                onClick={() => setCurrentPage(p => p + 1)}
+                style={{ opacity: currentPage >= Math.ceil(totalTasks / tasksPerPage) ? 0.5 : 1 }}
+              >
+                Next →
+              </button>
+            </div>
+          )}
         </div>
+
+        {/* Error Message */}
+        {error && (
+          <div style={{ 
+            padding: '16px', 
+            backgroundColor: 'var(--danger-light)', 
+            border: '1px solid var(--danger)', 
+            borderRadius: 'var(--radius-lg)',
+            color: 'var(--danger)',
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center'
+          }}>
+            <span>⚠️ {error}</span>
+            <button 
+              style={{ background: 'none', border: 'none', color: 'var(--danger)', cursor: 'pointer', fontSize: '1.2rem' }}
+              onClick={() => setError(null)}
+            >
+              ✕
+            </button>
+          </div>
+        )}
       </div>
-      <TaskModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} onSubmit={handleCreateOrUpdate} task={editingTask} />
+
+      <TaskModal 
+        isOpen={isModalOpen} 
+        onClose={() => setIsModalOpen(false)} 
+        onSubmit={handleCreateOrUpdate} 
+        task={editingTask} 
+      />
     </div>
   );
 };

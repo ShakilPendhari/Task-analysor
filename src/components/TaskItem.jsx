@@ -69,49 +69,89 @@ const TaskItem = ({ task, onUpdate, onDelete }) => {
   };
 
   const getProgressBarColor = () => {
-    if (task.completed) return "#4caf50";
-    if (percentageUsed >= 100) return "#f44336";
-    if (percentageUsed >= 70) return "#ff9800";
-    if (percentageUsed >= 50) return "#ffeb3b";
-    return "#2196f3";
+    if (task.completed) return "var(--secondary)";
+    if (percentageUsed >= 100) return "var(--danger)";
+    if (percentageUsed >= 70) return "#f59e0b";
+    if (percentageUsed >= 50) return "#fbbf24";
+    return "var(--primary)";
   };
 
   return (
-    <div className="task-item" style={{ border: "1px solid #ccc", padding: "10px", margin: "10px 0", borderRadius: "8px" }}>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-        <h3>{task.title}</h3>
-        <button onClick={() => onDelete(task.id)} style={{ background: "none", border: "none", color: "red", cursor: "pointer" }}>Delete</button>
+    <div className="task-card" style={{ position: 'relative' }}>
+      <div className="task-header">
+        <h3 className="task-title">{task.title}</h3>
+        <button 
+          className="btn-delete"
+          onClick={() => onDelete(task.id)}
+          style={{ padding: '4px 8px', fontSize: '0.8rem' }}
+          title="Delete task"
+        >
+          🗑️
+        </button>
       </div>
-      <p>{task.description}</p>
-      <p><strong>Deadline:</strong> {new Date(task.deadline).toLocaleString()}</p>
-      <div style={{ margin: "10px 0" }}>
-        <div style={{ background: "#eee", borderRadius: "4px", height: "10px", width: "100%" }}>
+
+      {task.description && (
+        <p style={{ margin: '8px 0', fontSize: '0.9rem', color: 'var(--text-muted)' }}>
+          {task.description}
+        </p>
+      )}
+
+      <div className="task-meta">
+        <div className="task-deadline">
+          <span>📅</span>
+          <span>{new Date(task.deadline).toLocaleString()}</span>
+        </div>
+        <span style={{ 
+          padding: '4px 8px', 
+          borderRadius: '4px', 
+          backgroundColor: getProgressBarColor() + '20',
+          color: getProgressBarColor(),
+          fontSize: '0.8rem',
+          fontWeight: '600'
+        }}>
+          {getStatusMessage()}
+        </span>
+      </div>
+
+      {/* Progress Bar */}
+      <div style={{ margin: '12px 0' }}>
+        <div style={{ 
+          background: 'var(--border)', 
+          borderRadius: 'var(--radius-md)', 
+          height: '8px', 
+          width: '100%',
+          overflow: 'hidden'
+        }}>
           <div style={{ 
             background: getProgressBarColor(), 
-            width: `${percentageUsed}%`, 
-            height: "10px", 
-            borderRadius: "4px",
-            transition: "width 0.5s ease-in-out"
+            width: `${Math.min(percentageUsed, 100)}%`, 
+            height: '8px', 
+            borderRadius: 'var(--radius-md)',
+            transition: 'width var(--transition-base)',
+            boxShadow: `0 0 8px ${getProgressBarColor()}40`
           }}></div>
         </div>
       </div>
-      <div style={{ display: "flex", justifyContent: "space-between", fontSize: "0.9em" }}>
-        <span>{getStatusMessage()}</span>
-        <span>{timeLeft}</span>
+
+      <div style={{ 
+        display: 'flex', 
+        justifyContent: 'space-between', 
+        fontSize: '0.85rem',
+        color: 'var(--text-muted)',
+        marginBottom: '12px'
+      }}>
+        <span>⏱️ Time left: <strong>{timeLeft}</strong></span>
+        <span>📊 {Math.round(percentageUsed)}% used</span>
       </div>
-      <div style={{ marginTop: "10px" }}>
+
+      <div style={{ marginTop: '12px' }}>
         <button 
           onClick={() => onUpdate(task.id, { completed: !task.completed })}
-          style={{ 
-            padding: "5px 10px", 
-            backgroundColor: task.completed ? "#ccc" : "#4caf50", 
-            color: "white", 
-            border: "none", 
-            borderRadius: "4px",
-            cursor: "pointer"
-          }}
+          className={task.completed ? 'btn-delete' : 'btn-edit'}
+          style={{ width: '100%', padding: '8px 12px' }}
+          title={task.completed ? 'Mark as incomplete' : 'Mark as complete'}
         >
-          {task.completed ? "Mark Incomplete" : "Mark Complete"}
+          {task.completed ? '↩️ Mark Incomplete' : '✅ Mark Complete'}
         </button>
       </div>
     </div>

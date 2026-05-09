@@ -4,27 +4,42 @@ const Stats = ({ tasks }) => {
   const pendingTasks = totalTasks - completedTasks;
   const completionRate = totalTasks > 0 ? (completedTasks / totalTasks) * 100 : 0;
 
+  const StatCard = ({ label, value, icon, color }) => (
+    <div className="stat-card">
+      <div style={{ fontSize: '2rem', marginBottom: '8px' }}>{icon}</div>
+      <p className="stat-label">{label}</p>
+      <p className="stat-value" style={{ color }}>
+        {typeof value === 'string' ? value : value}
+      </p>
+    </div>
+  );
+
   return (
-    <div className="stats-container" style={{ padding: "20px", border: "1px solid #eee", borderRadius: "8px", backgroundColor: "#f9f9f9", marginBottom: "20px" }}>
-      <h2>Task Analysis</h2>
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))", gap: "20px" }}>
-        <div style={{ textAlign: "center", padding: "10px", backgroundColor: "#fff", borderRadius: "8px", boxShadow: "0 2px 4px rgba(0,0,0,0.05)" }}>
-          <div style={{ fontSize: "1.2em", color: "#666" }}>Total Planned</div>
-          <div style={{ fontSize: "2em", fontWeight: "bold" }}>{totalTasks}</div>
-        </div>
-        <div style={{ textAlign: "center", padding: "10px", backgroundColor: "#fff", borderRadius: "8px", boxShadow: "0 2px 4px rgba(0,0,0,0.05)" }}>
-          <div style={{ fontSize: "1.2em", color: "#4caf50" }}>Completed</div>
-          <div style={{ fontSize: "2em", fontWeight: "bold" }}>{completedTasks}</div>
-        </div>
-        <div style={{ textAlign: "center", padding: "10px", backgroundColor: "#fff", borderRadius: "8px", boxShadow: "0 2px 4px rgba(0,0,0,0.05)" }}>
-          <div style={{ fontSize: "1.2em", color: "#f44336" }}>Pending</div>
-          <div style={{ fontSize: "2em", fontWeight: "bold" }}>{pendingTasks}</div>
-        </div>
-        <div style={{ textAlign: "center", padding: "10px", backgroundColor: "#fff", borderRadius: "8px", boxShadow: "0 2px 4px rgba(0,0,0,0.05)" }}>
-          <div style={{ fontSize: "1.2em", color: "#2196f3" }}>Completion Rate</div>
-          <div style={{ fontSize: "2em", fontWeight: "bold" }}>{Math.round(completionRate)}%</div>
-        </div>
-      </div>
+    <div className="stats-container">
+      <StatCard 
+        icon="📋" 
+        label="Total Planned" 
+        value={totalTasks}
+        color="var(--primary)"
+      />
+      <StatCard 
+        icon="✅" 
+        label="Completed" 
+        value={completedTasks}
+        color="var(--secondary)"
+      />
+      <StatCard 
+        icon="⏳" 
+        label="Pending" 
+        value={pendingTasks}
+        color="#f59e0b"
+      />
+      <StatCard 
+        icon="📊" 
+        label="Completion Rate" 
+        value={`${Math.round(completionRate)}%`}
+        color="var(--primary)"
+      />
     </div>
   );
 };
